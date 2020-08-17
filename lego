@@ -1,0 +1,51 @@
+
+lulismo <- ESEB_2006 %>% 
+    select(rf, sexo, idade, instru ,eseb2,eseb6,eseb12a, eseb16a, eseb19, eseb21, eseb25, eseb43a, 
+           eseb43b, eseb45, eseb58r1, eseb58r2, eseb58r3, eseb58r4, regiao) %>% 
+    mutate(RENDA = case_when(
+      rf < 699 ~ "MENOS DE 2 SALARIOS",
+      rf %in% 700:1750 ~ "ENTRE 2 E 5 SALARIOS",
+      rf %in% 1751:7000 ~ "RENDA MEDIA, ENTRE 5 E 20 SALARIOS",
+    ),
+    CORRUPCAO_PROBLEMA_NACIONAL = case_when(
+      eseb2 %in% c(2, 3, 39, 43, 47, 57) ~ "1",
+      eseb2 %in% c(1, 4:38, 40:42, 44:46, 48:56, 58:99) ~ "0",
+    ),
+    VOTO = case_when(
+      eseb12a != 13 & eseb25 == 1 & eseb45 == 1 ~ "LULISTA ANTIGO",
+     eseb12a != 13 & eseb25 == 1 & eseb45 != 1 ~ "LULISTA NOVO",
+      eseb12a == 13 & eseb25 == 1 & eseb45 == 1  ~ "PETISTA",
+      eseb12a != 13 & eseb25 != 1 & eseb45 != 1 ~ "OUTROS"),
+   ESQUERDA = case_when(
+      eseb19 %in% 0:4 ~ "ESQQUERDA",
+      eseb19 %in% 5 ~  "CENTRO",
+      eseb19 %in% 6:10 ~ "DIREITA",
+    ),
+    REJEICAO_PT = ifelse(eseb43a == 0, "NAO VOTARIA", "VOTARIA"),
+    REJEICAO_PSDB = ifelse(eseb43b == 0, "NAO VOTARIA", "VOTARIA"),
+    INFORMACAO_POLITICA_1 = case_when(
+      eseb58r1 == 1 ~ "CORRETO",
+      eseb58r1 == 2 ~ "ERRADO",
+      eseb58r1 == 77 ~ "ns",
+      eseb58r1 == 99 ~ "nr"),
+    INFORMACAO_POLITICA_2 = case_when(
+      eseb58r2 == 1 ~ "CORRETO",
+      eseb58r2 == 2 ~ "ERRADO",
+      eseb58r2 == 77 ~ "ns",
+      eseb58r2 == 99 ~ "nr"),
+    INFORMACAO_POLITICA_3 = case_when(
+      eseb58r3 == 1 ~ "CORRETO",
+      eseb58r3 == 2 ~ "ERRADO",
+      eseb58r3 == 77 ~ "ns",
+      eseb58r3 == 99 ~ "nr"),
+    INFORMACAO_POLITICA_4 = case_when(
+      eseb58r4 == 1 ~ "CORRETO",
+      eseb58r4 == 2 ~ "ERRADO",
+      eseb58r4 == 77 ~ "ns",
+      eseb58r4 == 99 ~ "nr"),
+    REGIAO = case_when(
+      regiao == 1 ~ "NORDESTE",
+      regiao == 2 ~ "NORTE/CENTRO OESTE",
+      regiao == 3 ~ "SUDESTE",
+      regiao == 4 ~ "SUL",
+    ))
