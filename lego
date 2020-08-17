@@ -9,6 +9,8 @@ library(ORDINAL)
 library(sjplot)
 library(stargazer)
 library(texreg)
+library(VGAM)
+library(nnet)
 
 lulismo <- ESEB_2006 %>% 
   select(rf, sexo, idade, instru ,eseb2,eseb6,eseb12a, eseb16a, eseb19, eseb21, eseb25, eseb43a, 
@@ -65,16 +67,12 @@ lula1 <- lulismo %>%
          IDADE = idade) %>% 
   mutate(VOTO = factor(VOTO))
 
-modelo1 <- clm(VOTO ~ RENDA + SIMPATIA_LULA + AVALIACAO_RETROSPECTIVA_GERAL +
+modelo1 <- multinom(VOTO ~ RENDA + SIMPATIA_LULA + AVALIACAO_RETROSPECTIVA_GERAL +
                 CORRUPCAO_PROBLEMA_NACIONAL + eseb19 +
                 REJEICAO_PSDB + REJEICAO_PT + INFORMACAO_POLITICA_1 +
                 ACOMPANHOU_A_CAMPANHA + ESCOLARIDADE + IDADE + GENERO + REGIAO, 
                 data = lula1, link = "probit" )
 
-scale_test(modelo1)
-
-plot_model(modelo1, terms = "REGIAO",
-           type = "pred")
+summary(modelo1)
 
 stargazer::stargazer(modelo1, type = "text")
-texreg::screenreg(modelo1$y.levels, type = "text")
