@@ -73,6 +73,11 @@ modelo1 <- multinom(VOTO ~ RENDA + SIMPATIA_LULA + AVALIACAO_RETROSPECTIVA_GERAL
                 ACOMPANHOU_A_CAMPANHA + ESCOLARIDADE + IDADE + GENERO + REGIAO, 
                 data = lula1, link = "probit" )
 
+modelo2 <-  vglm(VOTO ~ RENDA + SIMPATIA_LULA + AVALIACAO_RETROSPECTIVA_GERAL +
+                     CORRUPCAO_PROBLEMA_NACIONAL + eseb19 +
+                     REJEICAO_PSDB + REJEICAO_PT + INFORMACAO_POLITICA_1 +
+                     ACOMPANHOU_A_CAMPANHA + ESCOLARIDADE + IDADE + GENERO + REGIAO, 
+                     multinomial(refLevel = 1),data = lula1, link = "probit" )
 summary(modelo1)
 
 stargazer::stargazer(modelo1, type = "text")
