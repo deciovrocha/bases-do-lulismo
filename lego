@@ -1,3 +1,11 @@
+#Primeiramente ler a base
+ESEB_2006 <- read_sav("C:/Users/Decio/Desktop/ESEB 2006/02489.sav")
+
+#Ler os principais pacotes que serão utilizados
+library(tidyverse)
+librarry(MASS)
+library(ggplot2)
+
 
 lulismo <- ESEB_2006 %>% 
     select(rf, sexo, idade, instru ,eseb2,eseb6,eseb12a, eseb16a, eseb19, eseb21, eseb25, eseb43a, 
@@ -49,3 +57,13 @@ lulismo <- ESEB_2006 %>%
       regiao == 3 ~ "SUDESTE",
       regiao == 4 ~ "SUL",
     ))
+
+lula1 <- lulismo %>% 
+  rename(SIMPATIA_LULA = eseb16a,
+         ACOMPANHOU_A_CAMPANHA = eseb21,
+         AVALIACAO_RETROSPECTIVA_GERAL = eseb6,
+         GENERO = sexo,
+         ESCOLARIDADE = instru,
+         IDADE = idade) %>% 
+  mutate(VOTO = as.factor(VOTO))
+
