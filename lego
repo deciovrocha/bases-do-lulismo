@@ -1,4 +1,14 @@
+#Primeiramente ler a base de dados
 ESEB_2006 <- read_sav("C:/Users/Decio/Desktop/ESEB 2006/02489.sav")
+
+#Ler os pacotes que serão necessários
+library(tidyverse)
+librarry(ggplot2)
+library(MASS)
+library(ORDINAL)
+library(sjplot)
+library(stargazer)
+library(texreg)
 
 lulismo <- ESEB_2006 %>% 
   select(rf, sexo, idade, instru ,eseb2,eseb6,eseb12a, eseb16a, eseb19, eseb21, eseb25, eseb43a, 
@@ -59,7 +69,12 @@ modelo1 <- clm(VOTO ~ RENDA + SIMPATIA_LULA + AVALIACAO_RETROSPECTIVA_GERAL +
                 CORRUPCAO_PROBLEMA_NACIONAL + eseb19 +
                 REJEICAO_PSDB + REJEICAO_PT + INFORMACAO_POLITICA_1 +
                 ACOMPANHOU_A_CAMPANHA + ESCOLARIDADE + IDADE + GENERO + REGIAO, 
-                data = lula1, link = "probit")
+                data = lula1, link = "probit" )
 
-summary(modelo1)
+scale_test(modelo1)
+
+plot_model(modelo1, terms = "REGIAO",
+           type = "pred")
+
 stargazer::stargazer(modelo1, type = "text")
+texreg::screenreg(modelo1$y.levels, type = "text")
