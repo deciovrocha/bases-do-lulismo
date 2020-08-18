@@ -57,6 +57,8 @@ lula1 <- lulismo %>%
 lula1$VOTO <- relevel(lula1$VOTO, ref = "LULISTA NOVO")
 lula1$RENDA <- relevel(lula1$RENDA, ref = "MUITO RICO")
 lula1$REGIAO <- relevel(lula1$REGIAO, ref = "SUL")
+lula1$REJEICAO_PSDB <- relevel(lula1$REJEICAO_PSDB, ref = "NAO VOTARIA")
+lula1$REJEICAO_PT <- relevel(lula1$REJEICAO_PT, ref = "NAO VOTARIA")
 
 modelo1 <- multinom(VOTO ~ RENDA + SIMPATIA_LULA + AVALIACAO_RETROSPECTIVA_GERAL +
                       CORRUPCAO_PROBLEMA_NACIONAL + ESQUERDA +
