@@ -14,11 +14,12 @@ library(nnet)
 
 lulismo <- ESEB_2006 %>% 
   select(rf, sexo, idade, instru ,eseb2,eseb6,eseb12a, eseb16a, eseb19, eseb21, eseb25, eseb43a, 
-         eseb43b, eseb45, eseb58r1, eseb58r2, eseb58r3, eseb58r4, regiao) %>% 
+         eseb43b, eseb45, eseb58r1, eseb58r2, eseb58r3, eseb58r4, regiao) %>%
   mutate(RENDA = case_when(
     rf < 699 ~ "MENOS DE 2 SALARIOS",
     rf %in% 700:1750 ~ "ENTRE 2 E 5 SALARIOS",
     rf %in% 1751:7000 ~ "RENDA MEDIA, ENTRE 5 E 20 SALARIOS",
+    rf>7010 ~ "MUITO RICO",
   ),
   CORRUPCAO_PROBLEMA_NACIONAL = case_when(
     eseb2 %in% c(2, 3, 39, 43, 47, 57) ~ "1",
@@ -31,53 +32,42 @@ lulismo <- ESEB_2006 %>%
     eseb12a %in% c(c(12, 14:66, NA)) & eseb25 != 1 ~ "OUTROS",
   ),
   REJEICAO_PT = ifelse(eseb43a == 1, "VOTARIA", "NAO VOTARIA"),
-  REJEICAO_PSDB = ifelse(eseb43b == 1, "NAO VOTARIA", "VOTARIA"),
-  INFORMACAO_POLITICA_1 = case_when(
-    eseb58r1 == 77 ~ "ns",
-    eseb58r1 == 2 ~ "ERRADO",
-    eseb58r1 == 1 ~ "CORRETO",
-    eseb58r1 == 99 ~ "nr"),
-  INFORMACAO_POLITICA_2 = case_when(
-    eseb58r2 == 1 ~ "CORRETO",
-    eseb58r2 == 2 ~ "ERRADO",
-    eseb58r2 == 77 ~ "ns",
-    eseb58r2 == 99 ~ "nr"),
-  INFORMACAO_POLITICA_3 = case_when(
-    eseb58r3 == 1 ~ "CORRETO",
-    eseb58r3 == 2 ~ "ERRADO",
-    eseb58r3 == 77 ~ "ns",
-    eseb58r3 == 99 ~ "nr"),
-  INFORMACAO_POLITICA_4 = case_when(
-    eseb58r4 == 1 ~ "CORRETO",
-    eseb58r4 == 2 ~ "ERRADO",
-    eseb58r4 == 77 ~ "ns",
-    eseb58r4 == 99 ~ "nr"),
+  REJEICAO_PSDB = ifelse(eseb43b == 1, "VOTARIA", "NAO VOTARIA"
+  ),
   REGIAO = case_when(
     regiao == 4 ~ "SUL",
     regiao == 2 ~ "NORTE/CENTRO OESTE",
     regiao == 3 ~ "SUDESTE",
-    regiao == 1 ~ "NORDESTE"))
+    regiao == 1 ~ "NORDESTE"),
+  ESQUERDA = ifelse(eseb19 %in% 0:4, "ESQUERDA", "CENTRO/DIREITA"),
+  AVALIACAO_RETROSPECTIVA_GERAL = ifelse(eseb6 %in% 1:2, "AVALIA BEM", "AVALIA MAL")) 
+
 
 lula1 <- lulismo %>% 
   rename(SIMPATIA_LULA = eseb16a,
          ACOMPANHOU_A_CAMPANHA = eseb21,
-         AVALIACAO_RETROSPECTIVA_GERAL = eseb6,
          GENERO = sexo,
          ESCOLARIDADE = instru,
-         IDADE = idade) %>% 
-  mutate(VOTO = factor(VOTO))
+         IDADE = idade,
+         INFORMACAO_POLITICA = eseb58r1) %>% 
+  mutate(VOTO = factor(VOTO),
+         REGIAO = factor(REGIAO),
+         RENDA = factor(RENDA))
+
+lula1$VOTO <- relevel(lula1$VOTO, ref = "LULISTA NOVO")
+lula1$RENDA <- relevel(lula1$RENDA, ref = "MUITO RICO")
+lula1$REGIAO <- relevel(lula1$REGIAO, ref = "SUL")
 
 modelo1 <- multinom(VOTO ~ RENDA + SIMPATIA_LULA + AVALIACAO_RETROSPECTIVA_GERAL +
-                CORRUPCAO_PROBLEMA_NACIONAL + eseb19 +
-                REJEICAO_PSDB + REJEICAO_PT + INFORMACAO_POLITICA_1 +
-                ACOMPANHOU_A_CAMPANHA + ESCOLARIDADE + IDADE + GENERO + REGIAO, 
-                data = lula1, link = "probit" )
+                      CORRUPCAO_PROBLEMA_NACIONAL + ESQUERDA +
+                      REJEICAO_PSDB + REJEICAO_PT + INFORMACAO_POLITICA +
+                      ACOMPANHOU_A_CAMPANHA + ESCOLARIDADE + IDADE + GENERO + REGIAO, 
+                      data = lula1, link = "probit")
 
-modelo2 <-  vglm(VOTO ~ RENDA + SIMPATIA_LULA + AVALIACAO_RETROSPECTIVA_GERAL +
-                     CORRUPCAO_PROBLEMA_NACIONAL + eseb19 +
-                     REJEICAO_PSDB + REJEICAO_PT + INFORMACAO_POLITICA_1 +
-                     ACOMPANHOU_A_CAMPANHA + ESCOLARIDADE + IDADE + GENERO + REGIAO, 
-                     multinomial(refLevel = 1),data = lula1, link = "probit" )
+
 summary(modelo1)
 
 stargazer::stargazer(modelo1, type = "text")
+
+plot_model(modelo1)
+
