@@ -29,7 +29,7 @@ lulismo <- ESEB_2006 %>%
     eseb12a %in% c(12, 14:66, NA) & eseb25 == 1 & eseb45 == 1 ~ "LULISTA ANTIGO",
     eseb12a %in% c(12, 14:66, NA) & eseb25 == 1 & eseb45 != 1 ~ "LULISTA NOVO",
     eseb12a == 13 & eseb25 == 1  ~ "PETISTA",
-    eseb12a %in% c(c(12, 14:66, NA)) & eseb25 != 1 ~ "OUTROS",
+    eseb12a %in% c(c(12, 14:66, NA)) & eseb25 != 1 ~ "vOUTROS",
   ),
   REJEICAO_PT = ifelse(eseb43a == 1, "VOTARIA", "NAO VOTARIA"),
   REJEICAO_PSDB = ifelse(eseb43b == 1, "VOTARIA", "NAO VOTARIA"
@@ -39,9 +39,11 @@ lulismo <- ESEB_2006 %>%
     regiao == 2 ~ "NORTE/CENTRO OESTE",
     regiao == 3 ~ "SUDESTE",
     regiao == 1 ~ "NORDESTE"),
-  ESQUERDA = ifelse(eseb19 %in% 0:4, "ESQUERDA", "CENTRO/DIREITA"),
-  AVALIACAO_RETROSPECTIVA_GERAL = ifelse(eseb6 %in% 1:2, "AVALIA BEM", "AVALIA MAL")) 
-
+  ESQUERDA = case_when(
+    eseb19 %in% 0:4 ~ "ESQUERDA",
+    eseb19 == 5 ~ "CENTRO",
+    eseb19 %in% 6:10 ~ "DIREITA"),
+  INFORMACAO_POLITICA = ifelse(eseb58r1 %in% c(1, 77, 99), "NAO INFORMADO", "INFORMACAO_POLITICA"))
 
 lula1 <- lulismo %>% 
   rename(SIMPATIA_LULA = eseb16a,
@@ -49,23 +51,26 @@ lula1 <- lulismo %>%
          GENERO = sexo,
          ESCOLARIDADE = instru,
          IDADE = idade,
-         INFORMACAO_POLITICA = eseb58r1) %>% 
+         AVALIACAO_RETROSPECTIVA_GERAL = eseb6) %>% 
   mutate(VOTO = factor(VOTO),
          REGIAO = factor(REGIAO),
-         RENDA = factor(RENDA))
+         RENDA = factor(RENDA),
+         REJEICAO_PSDB = factor(REJEICAO_PSDB),
+         REJEICAO_PT = factor(REJEICAO_PT))
 
-lula1$VOTO <- relevel(lula1$VOTO, ref = "LULISTA NOVO")
+ESEB_2006$eseb58r1
+lula1$VOTO <- relevel(lula1$VOTO, ref = "LULISTA ANTIGO")
 lula1$RENDA <- relevel(lula1$RENDA, ref = "MUITO RICO")
 lula1$REGIAO <- relevel(lula1$REGIAO, ref = "SUL")
 lula1$REJEICAO_PSDB <- relevel(lula1$REJEICAO_PSDB, ref = "NAO VOTARIA")
 lula1$REJEICAO_PT <- relevel(lula1$REJEICAO_PT, ref = "NAO VOTARIA")
+
 
 modelo1 <- multinom(VOTO ~ RENDA + SIMPATIA_LULA + AVALIACAO_RETROSPECTIVA_GERAL +
                       CORRUPCAO_PROBLEMA_NACIONAL + ESQUERDA +
                       REJEICAO_PSDB + REJEICAO_PT + INFORMACAO_POLITICA +
                       ACOMPANHOU_A_CAMPANHA + ESCOLARIDADE + IDADE + GENERO + REGIAO, 
                       data = lula1, link = "probit")
-
 
 summary(modelo1)
 
@@ -76,72 +81,70 @@ plot_model(modelo1)
 
 Tabela 1. Coeficientes de regressão probite multinomial com erros padrão robusto
 para Lulistas Antigos
-
 ========================================================================
                                               Dependent variable:       
                                         --------------------------------
-                                        LULISTA NOVO  PETISTA    OUTROS 
+                                        LULISTA NOVO  PETISTA   vOUTROS 
                                             (1)         (2)       (3)   
 ------------------------------------------------------------------------
-ENTRE 2 E 5 SALARIOS                      -0.780    -2.380***  1.419*  
-                                          (0.845)     (0.721)   (0.737) 
+ENTRE 2 E 5 SALARIOS                      -0.997    -2.390***  1.267*  
+                                          (0.879)     (0.719)   (0.732) 
                                                                         
-MENOS DE 2 SALARIOS                       -0.394    -2.274***  1.310*  
-                                          (0.869)     (0.689)   (0.747) 
+MENOS DE 2 SALARIOS                       -0.375    -2.193***  1.328*  
+                                          (0.875)     (0.685)   (0.740) 
                                                                         
-RENDA MEDIA, ENTRE 5 E 20 SALARIOS        -1.701    -2.078***   1.017  
-                                          (1.184)     (0.788)   (0.898) 
+RENDA MEDIA, ENTRE 5 E 20 SALARIOS        -1.861    -2.076***   0.880  
+                                          (1.191)     (0.783)   (0.892) 
                                                                         
-SIMPATIA_LULA                              -0.231    0.636***  -0.484***
-                                          (0.152)     (0.148)   (0.125) 
+SIMPATIA_LULA                              -0.217    0.638***  -0.453***
+                                          (0.151)     (0.148)   (0.121) 
                                                                         
-AVALIACAO_RETROSPECTIVA_GERAL              0.666       0.238     0.655  
-                                          (0.505)     (0.496)   (0.504) 
+AVALIACAO_RETROSPECTIVA_GERAL              0.733       0.225     0.722  
+                                          (0.503)     (0.494)   (0.503) 
                                                                         
-CORRUPCAO_PROBLEMA_NACIONAL                -0.709     -0.050     0.141  
-                                          (0.637)     (0.404)   (0.522) 
+CORRUPCAO_PROBLEMA_NACIONAL               -0.900     -0.116     0.080  
+                                          (0.659)     (0.413)   (0.518) 
                                                                         
+ESQUERDA                                  -0.337      0.182    -1.208  
+                                          (0.938)     (0.639)   (0.933) 
                                                                         
-ESQUERDA                                  -0.557      0.136    -1.189  
-                                          (0.921)     (0.640)   (0.918) 
+REJEICAO_PSDB                              1.174*     -0.544     0.801  
+                                          (0.691)     (0.438)   (0.541) 
                                                                         
-REJEICAO_PSDB                              1.128*     -0.535     0.811  
-                                          (0.673)     (0.441)   (0.543) 
+REJEICAO_PT                                1.232      2.100**  -2.431***
+                                          (1.229)     (0.936)   (0.668) 
                                                                         
-REJEICAO_PT                                1.216      2.128**  -2.429***
-                                          (1.220)     (0.940)   (0.672) 
+INFORMACAO_POLITICA                       -1.489*     -0.519     0.096  
+                                          (0.846)     (0.481)   (0.584) 
                                                                         
-INFORMACAO_POLITICA                        -0.015     -0.006     0.009  
-                                          (0.015)     (0.008)   (0.009) 
+ACOMPANHOU_A_CAMPANHA                      0.003      -0.023    -0.235  
+                                          (0.072)     (0.048)   (0.279) 
                                                                         
-ACOMPANHOU_A_CAMPANHA                      0.0003     -0.024    -0.232  
-                                          (0.070)     (0.048)   (0.278) 
+ESCOLARIDADE                               0.055       0.092     0.017  
+                                          (0.201)     (0.134)   (0.168) 
                                                                         
-ESCOLARIDADE                               0.079       0.098     0.001  
-                                          (0.197)     (0.134)   (0.167) 
+IDADE                                      0.018       0.018   -0.053** 
+                                          (0.028)     (0.018)   (0.025) 
                                                                         
-IDADE                                      0.012       0.018   -0.055** 
-                                          (0.027)     (0.018)   (0.025) 
+GENERO                                     -0.395      0.071     0.537  
+                                          (0.653)     (0.428)   (0.525) 
                                                                         
-GENERO                                     -0.460      0.040     0.447  
-                                          (0.660)     (0.430)   (0.534) 
+NORDESTE                                   2.266       0.885    -1.274  
+                                          (1.395)     (0.790)   (0.965) 
                                                                         
-NORDESTE                                   1.973       0.831    -1.225  
-                                          (1.369)     (0.776)   (0.976) 
+NORTE/CENTRO OESTE                         0.952       0.090    -1.763  
+                                          (1.625)     (1.089)   (1.118) 
                                                                         
-NORTE/CENTRO OESTE                         0.861       0.070    -1.691  
-                                          (1.595)     (1.086)   (1.119) 
+SUDESTE                                    1.745       0.861     0.288  
+                                          (1.315)     (0.752)   (0.777) 
                                                                         
-SUDESTE                                    1.681       0.897     0.400  
-                                          (1.290)     (0.746)   (0.786) 
-                                                                        
-Constant                                   -2.875    -6.732***  3.747*  
-                                          (2.359)     (1.923)   (2.019) 
+Constant                                   -3.233    -6.659***  3.475*  
+                                          (2.413)     (1.905)   (2.004) 
                                                                         
 ------------------------------------------------------------------------
-Akaike Inf. Crit.                         457.966     457.966   457.966 
+Akaike Inf. Crit.                         456.692     456.692   456.692 
 ========================================================================
-Note: *p<0.1; **p<0.05; ***p<0.01 N = 1000
+Note:   *p<0.1; **p<0.05; ***p<0.01 N = 1000
                                              
 Tabela 2. Coeficientes de regressão probite multinomial com erros padrão robusto
 para Lulistas Novos
@@ -152,61 +155,61 @@ para Lulistas Novos
                                         LULISTA ANTIGO PETISTA    OUTROS 
                                              (1)         (2)       (3)   
 -------------------------------------------------------------------------
-ENTRE 2 E 5 SALARIOS                        0.780       -1.600   2.199** 
-                                           (0.845)     (1.003)   (0.902) 
+ENTRE 2 E 5 SALARIOS                        0.997       -1.393   2.263** 
+                                           (0.879)     (1.029)   (0.926) 
                                                                          
-MENOS DE 2 SALARIOS                         0.394      -1.881*   1.704*  
-                                           (0.869)     (1.007)   (0.910) 
+MENOS DE 2 SALARIOS                         0.375      -1.818*   1.703*  
+                                           (0.875)     (1.006)   (0.916) 
                                                                          
-RENDA MEDIA, ENTRE 5 E 20 SALARIOS          1.701       -0.377   2.718** 
-                                           (1.184)     (1.291)   (1.177) 
+RENDA MEDIA, ENTRE 5 E 20 SALARIOS          1.861       -0.215   2.741** 
+                                           (1.191)     (1.292)   (1.177) 
                                                                          
-SIMPATIA_LULA                               0.231      0.867***  -0.253* 
-                                           (0.152)     (0.192)   (0.153) 
+SIMPATIA_LULA                               0.217      0.856***  -0.236  
+                                           (0.151)     (0.191)   (0.152) 
                                                                          
-AVALIACAO_RETROSPECTIVA_GERAL               -0.666      -0.427   -0.010  
-                                           (0.505)     (0.617)   (0.020) 
+AVALIACAO_RETROSPECTIVA_GERAL               -0.733      -0.508   -0.011  
+                                           (0.503)     (0.615)   (0.020) 
                                                                          
-CORRUPCAO_PROBLEMA_NACIONAL                 0.709       0.660     0.850  
-                                           (0.637)     (0.667)   (0.716) 
-                                                                                                                                                 
-ESQUERDA                                    0.557       0.693    -0.632  
-                                           (0.921)     (0.977)   (1.109) 
+CORRUPCAO_PROBLEMA_NACIONAL                 0.900       0.784     0.980  
+                                           (0.659)     (0.692)   (0.729) 
+                                                                                                                                                  
+ESQUERDA                                    0.338       0.520    -0.870  
+                                           (0.938)     (0.986)   (1.143) 
                                                                          
-REJEICAO_PSDB                              -1.128*     -1.663**  -0.317  
-                                           (0.673)     (0.713)   (0.751) 
+REJEICAO_PSDB                              -1.174*     -1.718**  -0.373  
+                                           (0.691)     (0.729)   (0.767) 
                                                                          
-REJEICAO_PT                                -1.215      0.912   -3.644***
-                                           (1.219)     (1.476)   (1.195) 
+REJEICAO_PT                                -1.232      0.868   -3.664***
+                                           (1.229)     (1.477)   (1.200) 
                                                                          
-INFORMACAO_POLITICA                         0.015       0.010     0.024  
-                                           (0.015)     (0.016)   (0.016) 
+INFORMACAO_POLITICA                         1.489*      0.970    1.585*  
+                                           (0.846)     (0.882)   (0.911) 
                                                                          
-ACOMPANHOU_A_CAMPANHA                      -0.0002      -0.024   -0.232  
-                                           (0.070)     (0.083)   (0.283) 
+ACOMPANHOU_A_CAMPANHA                       -0.003      -0.026   -0.238  
+                                           (0.072)     (0.084)   (0.284) 
                                                                          
-ESCOLARIDADE                                -0.079      0.019    -0.079  
-                                           (0.197)     (0.211)   (0.217) 
+ESCOLARIDADE                                -0.055      0.037    -0.038  
+                                           (0.201)     (0.214)   (0.221) 
                                                                          
-IDADE                                       -0.012      0.006   -0.067** 
-                                           (0.027)     (0.028)   (0.032) 
+IDADE                                       -0.018      0.001   -0.070** 
+                                           (0.028)     (0.029)   (0.033) 
                                                                          
-GENERO                                      0.460       0.500     0.908  
-                                           (0.660)     (0.702)   (0.729) 
+GENERO                                      0.395       0.466     0.933  
+                                           (0.653)     (0.693)   (0.717) 
                                                                          
-NORDESTE                                   -1.973      -1.142  -3.198** 
-                                           (1.369)     (1.490)   (1.451) 
+NORDESTE                                   -2.266      -1.382  -3.541** 
+                                           (1.395)     (1.519)   (1.473) 
                                                                          
-REGIAONORTE/CENTRO OESTE                    -0.862      -0.792   -2.552  
-                                           (1.595)     (1.828)   (1.665) 
+NORTE/CENTRO OESTE                         -0.952      -0.862   -2.715  
+                                           (1.625)     (1.849)   (1.700) 
                                                                          
-REGIAOSUDESTE                               -1.681      -0.785   -1.281  
-                                           (1.290)     (1.422)   (1.266) 
+SUDESTE                                    -1.745      -0.883   -1.457  
+                                           (1.315)     (1.446)   (1.288) 
                                                                          
-Constant                                    2.875       -3.858  6.621*** 
-                                           (2.359)     (2.758)   (2.416) 
+Constant                                    3.233       -3.426  6.708*** 
+                                           (2.413)     (2.790)   (2.462) 
                                                                          
 -------------------------------------------------------------------------
-Akaike Inf. Crit.                          457.966     457.966   457.966 
+Akaike Inf. Crit.                          456.692     456.692   456.692 
 =========================================================================
-Note:   *p<0.1; **p<0.05; ***p<0.01   N=1000
+Note: *p<0.1; **p<0.05; ***p<0.01   N=1000
