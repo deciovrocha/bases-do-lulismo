@@ -32,7 +32,7 @@ lulismo <- ESEB_2006 %>%
     eseb12a %in% c(c(12, 14:66, NA)) & eseb25 != 1 ~ "vOUTROS",
   ),
   REJEICAO_PT = ifelse(eseb43a == 1, "VOTARIA", "NAO VOTARIA"),
-  REJEICAO_PSDB = ifelse(eseb43b == 1, "VOTARIA", "NAO VOTARIA"
+  REJEICAO_PSDB = ifelse(eseb43c == 1, "VOTARIA", "NAO VOTARIA"
   ),
   REGIAO = case_when(
     regiao == 4 ~ "SUL",
